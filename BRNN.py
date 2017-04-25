@@ -175,10 +175,11 @@ with tf.Session() as sess:
 
     step = 1
     t_acc = 1.0
-    while step <= 10:
-        test_x = testset.data_in
+    while step <= 100:
+        '''test_x = testset.data_in
         test_y = testset.data_label
-        test_length = testset.data_length
+        test_length = testset.data_length'''
+        test_x, test_y, test_length = testset.next(batch_size)
         acc = sess.run(accuracy, feed_dict={x: test_x, y: test_y, z: test_length})
         t_acc = (acc + t_acc * (step - 1)) / (float(step))
         log_str = "TEST Accuracy= " + \

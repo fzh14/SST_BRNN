@@ -1,1 +1,2 @@
-2017-04-26 03:19:50
+2017-04-26 04:05:29
+Iter 12800, Minibatch Loss= 1.563307, Training Accuracy= 0.42070,dev Accuracy= 0.02344
