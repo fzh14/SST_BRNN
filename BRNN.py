@@ -70,7 +70,7 @@ print len(trainset.data_in)
 # ==============
 
 learning_rate = 0.001
-training_iters = 2000000
+training_iters = 1000000
 batch_size = 128
 display_step = 100
 
@@ -111,7 +111,7 @@ def last_relevant(output, length):
 def BiRNN(x, z, weights, biases):
     X = tf.reshape(x, [-1, n_input])
     X_in = tf.matmul(X, weights['in']) + biases['in']
-    X_in = tf.reshape(X_in, [batch_size, -1, n_hidden])
+    X_in = tf.reshape(X_in, [-1, n_steps, n_hidden])
 
     # X_in = tf.unstack(X_in, None, 1)
 
