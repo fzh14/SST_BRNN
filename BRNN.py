@@ -70,7 +70,7 @@ print len(trainset.data_in)
 # ==============
 
 learning_rate = 0.001
-training_iters = 5000000
+training_iters = 2000000
 batch_size = 128
 display_step = 100
 
@@ -98,7 +98,7 @@ biases = {
 
 
 def last_relevant(output, length):
-    b_size = int(batch_size)
+    b_size = tf.shape(output)[0]
     max_length = sentence_max
     out_size = int(output.get_shape()[2])
     #l = length - [1 for k in range(batch_size)]
@@ -172,3 +172,17 @@ with tf.Session() as sess:
         step += 1
 
     print 'Optimizer Complete'
+
+    step = 1
+    t_acc = 1.0
+    while step <= 10:
+        test_x = testset.data_in
+        test_y = testset.data_label
+        test_length = testset.data_length
+        acc = sess.run(accuracy, feed_dict={x: test_x, y: test_y, z: test_length})
+        t_acc = (acc + t_acc * (step - 1)) / (float(step))
+        log_str = "TEST Accuracy= " + \
+                  "{:.5f}".format(t_acc)
+        print log_str
+        f_log.write(log_str + '\n')
+        step += 1
