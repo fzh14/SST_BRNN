@@ -72,7 +72,7 @@ print len(trainset.data_in)
 learning_rate = 0.001
 training_iters = 1000000
 batch_size = 128
-display_step = 100
+display_step = 500
 
 # Network Parameters
 n_input = 50  # data input (shape: 50*56)
@@ -145,6 +145,23 @@ dev_x, dev_y, dev_length = trainset.next(batch_size)
 f_log = open('logs/SST_BRNN_log.txt','w')
 f_log.write(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())) + '\n')
 
+def test():
+    t_step = 1
+    t_acc = 1.0
+    log_str = ''
+    while t_step <= 100:
+        '''test_x = testset.data_in
+        test_y = testset.data_label
+        test_length = testset.data_length'''
+        test_x, test_y, test_length = testset.next(batch_size)
+        acc = sess.run(accuracy, feed_dict={x: test_x, y: test_y, z: test_length})
+        t_acc = (acc + t_acc * (step - 1)) / (float(step))
+        log_str = "TEST Accuracy= " + \
+                  "{:.5f}".format(t_acc)
+        t_step += 1
+    print log_str
+    f_log.write(log_str + '\n')
+
 
 with tf.Session() as sess:
     init = tf.global_variables_initializer()
@@ -169,21 +186,8 @@ with tf.Session() as sess:
                   "{:.5f}".format(acc))
             print log_str
             f_log.write(log_str + '\n')
+            test()
         step += 1
 
     print 'Optimizer Complete'
-
-    step = 1
-    t_acc = 1.0
-    while step <= 100:
-        '''test_x = testset.data_in
-        test_y = testset.data_label
-        test_length = testset.data_length'''
-        test_x, test_y, test_length = testset.next(batch_size)
-        acc = sess.run(accuracy, feed_dict={x: test_x, y: test_y, z: test_length})
-        t_acc = (acc + t_acc * (step - 1)) / (float(step))
-        log_str = "TEST Accuracy= " + \
-                  "{:.5f}".format(t_acc)
-        print log_str
-        f_log.write(log_str + '\n')
-        step += 1
+    test()
