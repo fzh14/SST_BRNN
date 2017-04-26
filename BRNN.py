@@ -155,7 +155,7 @@ def test():
         test_length = testset.data_length'''
         test_x, test_y, test_length = testset.next(batch_size)
         acc = sess.run(accuracy, feed_dict={x: test_x, y: test_y, z: test_length})
-        t_acc = (acc + t_acc * (step - 1)) / (float(step))
+        t_acc = (acc + t_acc * (t_step - 1)) / (float(t_step))
         log_str = "TEST Accuracy= " + \
                   "{:.5f}".format(t_acc)
         t_step += 1
