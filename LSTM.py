@@ -108,32 +108,23 @@ def last_relevant(output, length):
     return relevant
 
 
-def BiRNN(x, z, weights, biases):
+def RNN(x, z, weights, biases):
     X = tf.reshape(x, [-1, n_input])
     X_in = tf.matmul(X, weights['in']) + biases['in']
     X_in = tf.reshape(X_in, [-1, n_steps, n_hidden])
 
-    # X_in = tf.unstack(X_in, None, 1)
+    #X_in = tf.unstack(X_in, n_steps, 1)
 
-    lstm_fw_cell = tf.contrib.rnn.BasicLSTMCell(n_hidden)
-    lstm_bw_cell = tf.contrib.rnn.BasicLSTMCell(n_hidden)
-    init_fw_state = lstm_fw_cell.zero_state(batch_size, dtype=tf.float32)
-    init_bw_state = lstm_bw_cell.zero_state(batch_size, dtype=tf.float32)
+    lstm_cell = tf.contrib.rnn.BasicLSTMCell(n_hidden)
+    init_state = cell.zero_state(batch_size, dtype=tf.float32)
 
-    outputs, final_state = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, X_in, sequence_length=z,
-                                                           initial_state_fw=init_fw_state,
-                                                           initial_state_bw=init_bw_state,
-                                                           time_major=False)
-
-    # outputs, _, _ = tf.contrib.rnn.static_bidirectional_rnn(lstm_fw_cell, lstm_bw_cell, X_in,
-    #                                              dtype=tf.float32)
-    outputs = tf.concat(outputs, 2)
-    #outputs = tf.unstack(outputs, n_steps, 1)
-    last = last_relevant(outputs, z)
-    return tf.matmul(last, weights['out']) + biases['out']
+    outputs, final_state = tf.nn.dynamic_rnn(lstm_cell, X_in, initial_state=init_state, time_major=False)
+    outputs = tf.unstack(tf.transpose(outputs, [1, 0, 2]))
+    results = tf.matmul(outputs[-1], weights['out']) + biases['out']
+    return results
 
 
-pred = BiRNN(x, z, weights, biases)
+pred = RNN(x, z, weights, biases)
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
@@ -142,7 +133,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 t_acc = 0
 dev_x, dev_y, dev_length = trainset.next(batch_size)
-f_log = open('logs/log_brnn.txt','w')
+f_log = open('logs/log_rnn.txt','w')
 f_log.write(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())) + '\n')
 
 def test():
@@ -164,7 +155,8 @@ def test():
 
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.4
-with tf.Session() as sess:
+
+with tf.Session(config) as sess:
     init = tf.global_variables_initializer()
     sess.run(init)
     step = 1
