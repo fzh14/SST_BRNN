@@ -70,7 +70,7 @@ print len(trainset.data_in)
 # ==============
 
 learning_rate = 0.001
-training_iters = 1000000
+training_iters = 2000000
 batch_size = 128
 display_step = 500
 
@@ -87,9 +87,8 @@ z = tf.placeholder(tf.int32, [None])
 weights = {
     # (50, 128)
     'in': tf.Variable(tf.random_normal([n_input, n_hidden])),
-    # Hidden layer weights => 2*n_hidden because of forward + backward cells
-    # (2*128, 5)
-    'out': tf.Variable(tf.random_normal([2 * n_hidden, n_classes]))
+    # (128, 5)
+    'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
 }
 biases = {
     'in': tf.Variable(tf.constant(0.1, shape=[n_hidden, ])),
@@ -116,7 +115,7 @@ def RNN(x, z, weights, biases):
     #X_in = tf.unstack(X_in, n_steps, 1)
 
     lstm_cell = tf.contrib.rnn.BasicLSTMCell(n_hidden)
-    init_state = cell.zero_state(batch_size, dtype=tf.float32)
+    init_state = lstm_cell.zero_state(batch_size, dtype=tf.float32)
 
     outputs, final_state = tf.nn.dynamic_rnn(lstm_cell, X_in, initial_state=init_state, time_major=False)
     outputs = tf.unstack(tf.transpose(outputs, [1, 0, 2]))
@@ -156,7 +155,7 @@ def test():
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.4
 
-with tf.Session(config) as sess:
+with tf.Session(config=config) as sess:
     init = tf.global_variables_initializer()
     sess.run(init)
     step = 1
