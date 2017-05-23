@@ -17,7 +17,7 @@ for i in fp.readlines():
         dict_split[li[0]] = li[1]
 
 project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
-model = gensim.models.KeyedVectors.load_word2vec_format('glove.6B.50d.txt',
+model = gensim.models.KeyedVectors.load_word2vec_format(project_path+'/glove.6B/glove.6B.50d.txt',
                                                         binary=False)
 num = 0
 fd = open('output_dataset.txt', 'r')
@@ -41,7 +41,6 @@ for i in fd.readlines():
             f_test.write(line)
         elif dict_split[li[2]] == '3':
             num_dev += 1
-            f_train.write(line)
             f_dev.write(line)
     except:
         pass
