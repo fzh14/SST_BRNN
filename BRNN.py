@@ -62,6 +62,7 @@ class Data(object):
 
 trainset = Data(path)
 testset = Data(test_path)
+devset = Data(dev_path)
 
 print len(trainset.data_in)
 
@@ -162,6 +163,19 @@ def test():
     print log_str
     f_log.write(log_str + '\n')
 
+def dev():
+    d_step = 1
+    d_acc = 1.0
+    log_str = ''
+    while d_step <= 100:
+        dev_x, dev_y, dev_length = devset.next(batch_size)
+        acc = sess.run(accuracy, feed_dict={x: dev_x, y: dev_y, z: dev_length})
+        d_acc = (acc + d_acc * (d_step - 1)) / (float(d_step))
+        log_str = "DEV Accuracy= " + \
+                  "{:.5f}".format(t_acc)
+        d_step += 1
+    print log_str
+
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.4
 with tf.Session() as sess:
@@ -187,7 +201,7 @@ with tf.Session() as sess:
                   "{:.5f}".format(acc))
             print log_str
             f_log.write(log_str + '\n')
-            test()
+            dev()
         step += 1
 
     print 'Optimizer Complete'
