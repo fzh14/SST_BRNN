@@ -9,7 +9,7 @@ path = 'stanfordSentimentTreebank/train_input.txt'
 dev_path = 'stanfordSentimentTreebank/dev_input.txt'
 test_path = 'stanfordSentimentTreebank/test_input.txt'
 project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-model = gensim.models.KeyedVectors.load_word2vec_format(project_path + '/glove.6B/glove.6B.50d.txt', binary=False)
+model = gensim.models.KeyedVectors.load_word2vec_format(project_path + '/glove.6B/glove.6B.200d.txt', binary=False)
 
 sentence_max = 56
 
@@ -31,7 +31,7 @@ class Data(object):
                 s.append(model[item].tolist())
             if len(word_list) < sentence_max:
                 for i in range(sentence_max - len(word_list)):
-                    s.append([0. for k in range(50)])
+                    s.append([0. for k in range(200)])
             self.data_length.append(len(word_list))
             l = [0. for k in range(5)]
             value = float(line[1])
@@ -70,13 +70,13 @@ print len(trainset.data_in)
 #     MODEL
 # ==============
 
-learning_rate = 0.001
+learning_rate = 0.0002
 training_iters = 1000000
 batch_size = 128
-display_step = 500
+display_step = 200
 
 # Network Parameters
-n_input = 50  # data input (shape: 50*56)
+n_input = 200  # data input (shape: 50*56)
 n_steps = 56  # timesteps
 n_hidden = 128  # hidden layer num of features
 n_classes = 5  # total classes
@@ -156,9 +156,11 @@ def test():
         test_length = testset.data_length'''
         test_x, test_y, test_length = testset.next(batch_size)
         acc = sess.run(accuracy, feed_dict={x: test_x, y: test_y, z: test_length})
+        loss = sess.run(cost, feed_dict={x:test_x, y:test_y, z:test_length})
         t_acc = (acc + t_acc * (t_step - 1)) / (float(t_step))
         log_str = "TEST Accuracy= " + \
-                  "{:.5f}".format(t_acc)
+                  "{:.5f}".format(t_acc)+", Minibatch Loss= " + \
+                  "{:.6f}".format(loss)
         t_step += 1
     print log_str
     f_log.write(log_str + '\n')
@@ -166,13 +168,17 @@ def test():
 def dev():
     d_step = 1
     d_acc = 1.0
+    d_loss = 0
     log_str = ''
     while d_step <= 100:
         dev_x, dev_y, dev_length = devset.next(batch_size)
         acc = sess.run(accuracy, feed_dict={x: dev_x, y: dev_y, z: dev_length})
+        loss = sess.run(cost, feed_dict={x:dev_x, y:dev_y, z:dev_length})
         d_acc = (acc + d_acc * (d_step - 1)) / (float(d_step))
+        d_loss = (loss + d_loss * (d_step - 1)) / (float(d_step))
         log_str = "DEV Accuracy= " + \
-                  "{:.5f}".format(t_acc)
+                  "{:.5f}".format(t_acc)+", Loss= " + \
+                  "{:.6f}".format(d_loss)
         d_step += 1
     print log_str
 
@@ -192,13 +198,13 @@ with tf.Session() as sess:
         acc = sess.run(accuracy, feed_dict={x: batch_x, y: batch_y, z: batch_length})
         t_acc = (acc + t_acc*(step -1))/(float(step))
         if step % display_step == 0:
-            acc = sess.run(accuracy, feed_dict={x: dev_x, y: dev_y, z: dev_length})
+            acc = sess.run(accuracy, feed_dict={x: batch_x, y: batch_y, z: batch_length})
             # Calculate batch loss
             loss = sess.run(cost, feed_dict={x: batch_x, y: batch_y, z: batch_length})
             log_str = ("Iter " + str(step * batch_size) + ", Minibatch Loss= " + \
                   "{:.6f}".format(loss) + ", Training Accuracy= " + \
-                  "{:.5f}".format(t_acc) + ",dev Accuracy= " + \
-                  "{:.5f}".format(acc))
+                  "{:.5f}".format(acc) + ",dev Accuracy= " + \
+                  "{:.5f}".format(t_acc))
             print log_str
             f_log.write(log_str + '\n')
             dev()

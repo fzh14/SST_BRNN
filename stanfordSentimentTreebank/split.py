@@ -17,7 +17,9 @@ for i in fp.readlines():
         dict_split[li[0]] = li[1]
 
 project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
-model = gensim.models.KeyedVectors.load_word2vec_format(project_path+'/glove.6B/glove.6B.50d.txt',
+#model_path = '/Users/ivanfzh/Desktop/workspace/GoogleNews-vectors-negative300.txt'
+model_path = project_path + '/glove.6B/glove.6B.200d.txt'
+model = gensim.models.KeyedVectors.load_word2vec_format(model_path,
                                                         binary=False)
 num = 0
 fd = open('output_dataset.txt', 'r')
